@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogContentText,
   DialogTitle,
   IconButton,
   Paper,
@@ -23,6 +22,7 @@ import { BehaviorSubject, Subscription } from 'rxjs';
 import { Reservation } from 'types/Reservation';
 import { reservations } from 'utils/data/reservation';
 import styled from 'styled-components/macro';
+import Addreservations from './AddReservation';
 
 const Title = styled.div`
   font-size: 1.25rem;
@@ -44,6 +44,7 @@ const Content: React.FC = () => {
   );
   const [dialogActionButtonText, setDialogActionButtonText] =
     useState<string>('Close');
+  const [isView, setIsView] = useState<boolean>(false);
   // Create an observable BehaviorSubject to store the reservations in memory cache
   const reservationsSubject = useMemo(
     () => new BehaviorSubject<Reservation[]>(initialReservations),
@@ -73,33 +74,58 @@ const Content: React.FC = () => {
     reservationsSubject.next(updatedReservations);
   };
 
+  const updateReservationToCache = (newReservation: Reservation) => {
+    const updatedReservations = [
+      ...reservationsSubject.getValue(),
+      newReservation,
+    ];
+    reservationsSubject.next(updatedReservations);
+  };
+
+  const updateSelectedReservation = (updatedReservation: Reservation) => {
+    setSelectedReservation(reservation => ({
+      ...reservation,
+      ...updatedReservation,
+    }));
+  };
+
   const handleRowClick = (reservation: Reservation) => {
+    setIsView(true);
     setDialogTitle('Reservations Details');
     setDialogActionButtonText('Close');
     setSelectedReservation(reservation);
     setOpenModal(true);
   };
 
-  const handleDelete = (id: number) => {
-    const updatedReservations = reservationsSubject
-      .getValue()
-      .filter(res => res.id !== id);
-    reservationsSubject.next(updatedReservations);
+  const handleDelete = (id: number | undefined) => {
+    if (id) {
+      const updatedReservations = reservationsSubject
+        .getValue()
+        .filter(res => res.id !== id);
+      reservationsSubject.next(updatedReservations);
+    }
   };
 
   const handleCloseModal = () => {
+    setIsView(false);
     setOpenModal(false);
+    setSelectedReservation(null);
   };
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
     const filteredReservations = initialReservations.filter(
       reservation =>
-        reservation.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        reservation.firstName
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        reservation.lastName.toLowerCase().includes(searchTerm.toLowerCase()),
+        (reservation?.email &&
+          reservation.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (reservation?.firstName &&
+          reservation.firstName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())) ||
+        (reservation?.lastName &&
+          reservation.lastName
+            .toLowerCase()
+            .includes(searchTerm.toLowerCase())),
     );
     event.target.value &&
       event.target.value.length > 0 &&
@@ -137,6 +163,7 @@ const Content: React.FC = () => {
             color="primary"
             startIcon={<Add />}
             onClick={() => {
+              setSelectedReservation(null);
               setDialogTitle('Add Reservations');
               setDialogActionButtonText('Save Changes');
               setOpenModal(true);
@@ -166,12 +193,12 @@ const Content: React.FC = () => {
                 key={reservation.id}
                 onClick={e => handleRowClick(reservation)}
               >
-                <TableCell>{reservation.stay.arrivalDate}</TableCell>
-                <TableCell>{reservation.stay.departureDate}</TableCell>
-                <TableCell>{reservation.firstName}</TableCell>
-                <TableCell>{reservation.lastName}</TableCell>
-                <TableCell>{reservation.email}</TableCell>
-                <TableCell>{reservation.phone}</TableCell>
+                <TableCell>{reservation?.stay?.arrivalDate}</TableCell>
+                <TableCell>{reservation?.stay?.departureDate}</TableCell>
+                <TableCell>{reservation?.firstName}</TableCell>
+                <TableCell>{reservation?.lastName}</TableCell>
+                <TableCell>{reservation?.email}</TableCell>
+                <TableCell>{reservation?.phone}</TableCell>
                 <TableCell>
                   <IconButton
                     color="primary"
@@ -191,7 +218,7 @@ const Content: React.FC = () => {
                     aria-label="Delete"
                     onClick={e => {
                       e.stopPropagation();
-                      handleDelete(reservation.id);
+                      handleDelete(reservation?.id);
                     }}
                   >
                     <Delete />
@@ -219,9 +246,30 @@ const Content: React.FC = () => {
               <Close />
             </IconButton>
           </DialogTitle>
-          <DialogContent dividers></DialogContent>
+          <DialogContent dividers>
+            <Addreservations
+              selectedReservation={selectedReservation}
+              updateSelectedReservation={updateSelectedReservation}
+            />
+          </DialogContent>
           <DialogActions>
-            <Button autoFocus onClick={handleCloseModal}>
+            <Button
+              autoFocus
+              onClick={() => {
+                if (isView) {
+                  handleCloseModal();
+                } else {
+                  if (selectedReservation && selectedReservation?.id) {
+                    updateReservationToCache(selectedReservation);
+                  } else if (selectedReservation) {
+                    selectedReservation.id =
+                      reservationsSubject.getValue().length + 1;
+                    addReservationToCache(selectedReservation);
+                  }
+                  handleCloseModal();
+                }
+              }}
+            >
               {dialogActionButtonText}
             </Button>
           </DialogActions>

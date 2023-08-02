@@ -31,7 +31,7 @@ export const reservations: Reservation[] = [
       'extraParking',
       'extraBalcony',
     ],
-    payment: 'cc',
+    payment: 'creditCard',
     note: 'idm lab test',
     tags: ['hotel', 'booking', 'labtest'],
     reminder: true,

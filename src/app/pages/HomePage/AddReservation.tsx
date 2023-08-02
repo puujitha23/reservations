@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import {
-  TextField,
-  Button,
   Box,
   Container,
   Grid,
@@ -16,51 +14,57 @@ import {
   InputLabel,
   MenuItem,
   Select,
+  FormHelperText,
+  SelectChangeEvent,
 } from '@mui/material';
 import DatePickerInput from 'app/components/DatePicker/Datepicker';
+import { Reservation } from 'types/Reservation';
+import ValidationTextFields from 'app/components/TextField/Textfield';
+import styled from 'styled-components';
+interface AddReservationProps {
+  selectedReservation: Reservation | null;
+  updateSelectedReservation: Function;
+}
 
-const Addreservations: React.FC = () => {
-  const [paymentMethod, setPaymentMethod] = useState('creditCard');
-  const [personalNote, setPersonalNote] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
+const ControlledSwitch = styled(Switch)`
+  color: ${p => p.theme.primary};
+`;
+
+const Addreservations: React.FC<AddReservationProps> = props => {
+  const [reservation, setReservation] = useState<Reservation | null>(null);
   const [tagInput, setTagInput] = useState('');
-  const [sendReminder, setSendReminder] = useState(false);
-  const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [streetName, setStreetName] = useState('');
-  const [streetNumber, setStreetNumber] = useState('');
-  const [dateOfArrival, setDateOfArrival] = useState<Date | null>(null);
-  const [dateOfDeparture, setDateOfDeparture] = useState<Date | null>(null);
+  const [email, setEmail] = useState<string>('');
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [dateError, setDateError] = useState('');
-
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    // Add your form submission logic here
-    console.log('Form submitted!');
-  };
 
   useEffect(() => {
     // Check if dateOfArrival is greater than dateOfDeparture
-    if (dateOfArrival && dateOfDeparture && dateOfArrival > dateOfDeparture) {
+    if (
+      reservation?.stay?.arrivalDate &&
+      reservation?.stay?.departureDate &&
+      reservation?.stay?.arrivalDate > reservation?.stay?.departureDate
+    ) {
       setDateError(
         'Date of Arrival should be less than or equal to Date of Departure',
       );
     } else {
       setDateError('');
     }
-  }, [dateOfArrival, dateOfDeparture]);
+  }, [reservation?.stay?.arrivalDate, reservation?.stay?.departureDate]);
 
   const handlePaymentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setPaymentMethod(event.target.value);
+    const updatedValue = { ...reservation, payment: event.target.value };
+    setReservation({ ...updatedValue });
   };
 
   const handlePersonalNoteChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    setPersonalNote(event.target.value);
+    setReservation({
+      ...reservation,
+      note: event.target.value,
+    });
+    // setPersonalNote(event.target.value);
   };
 
   const handleTagInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,26 +72,40 @@ const Addreservations: React.FC = () => {
   };
 
   const handleAddTag = () => {
-    if (tagInput.trim() !== '' && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
+    if (
+      tagInput.trim() !== '' &&
+      reservation?.tags &&
+      !reservation.tags.includes(tagInput.trim())
+    ) {
+      setReservation({
+        ...reservation,
+        tags: [...reservation.tags, tagInput.trim()],
+      });
       setTagInput('');
     }
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setReservation({
+      ...reservation,
+      tags:
+        reservation?.tags &&
+        reservation.tags.filter(tag => tag !== tagToRemove),
+    });
   };
 
   const handleSendReminderChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    setSendReminder(event.target.checked);
+    setReservation({ ...reservation, reminder: event.target.checked });
+    // setSendReminder(event.target.checked);
   };
 
   const handleSubscribeNewsletterChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    setSubscribeNewsletter(event.target.checked);
+    setReservation({ ...reservation, newsletter: event.target.checked });
+    // setSubscribeNewsletter(event.target.checked);
   };
 
   const handleFirstNameChange = (
@@ -95,16 +113,19 @@ const Addreservations: React.FC = () => {
   ) => {
     const words = event.target.value.split(' ');
     const firstName = words.slice(0, 25).join(' ');
-    setFirstName(firstName);
+    setReservation({ ...reservation, firstName });
+    // setFirstName(firstName);
   };
 
   const handleLastNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const words = event.target.value.split(' ');
     const lastName = words.slice(0, 25).join(' ');
-    setLastName(lastName);
+    setReservation({ ...reservation, lastName });
+    // setLastName(lastName);
   };
 
   const handleEmailChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReservation({ ...reservation, email: event.target.value });
     setEmail(event.target.value);
   };
 
@@ -114,27 +135,119 @@ const Addreservations: React.FC = () => {
     // Basic validation to allow only numeric values and limit the length to 15 characters
     const phoneNumber = event.target.value.replace(/\D/g, '').slice(0, 15);
     setPhoneNumber(phoneNumber);
+    setReservation({ ...reservation, phone: parseInt(phoneNumber) });
   };
 
   const handleStreetNameChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    setStreetName(event.target.value);
+    setReservation({
+      ...reservation,
+      addressStreet: {
+        ...reservation?.addressStreet,
+        streetName: event.target.value,
+      },
+    });
+    // setStreetName(event.target.value);
+  };
+
+  const handleRoomQuantityChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setReservation({
+      ...reservation,
+      room: {
+        ...reservation?.room,
+        roomQuantity: parseInt(event.target.value),
+      },
+    });
+    // setStreetName(event.target.value);
+  };
+
+  const handleRoomSizeChange = (event: SelectChangeEvent) => {
+    setReservation({
+      ...reservation,
+      room: {
+        ...reservation?.room,
+        roomSize: event.target.value,
+      },
+    });
+    // setStreetName(event.target.value);
   };
 
   const handleStreetNumberChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    setStreetNumber(event.target.value);
+    setReservation({
+      ...reservation,
+      addressStreet: {
+        ...reservation?.addressStreet,
+        streetNumber: event.target.value,
+      },
+    });
+    // setStreetNumber(event.target.value);
   };
 
   const handleDateOfArrivalChange = (newValue: Date | null) => {
-    setDateOfArrival(newValue);
+    setReservation({
+      ...reservation,
+      stay: { ...reservation?.stay, arrivalDate: newValue?.toISOString() },
+    });
+    // setDateOfArrival(newValue);
   };
 
   const handleDateOfDepartureChange = (newValue: Date | null) => {
-    setDateOfDeparture(newValue);
+    setReservation({
+      ...reservation,
+      stay: { ...reservation?.stay, departureDate: newValue?.toISOString() },
+    });
+    // setDateOfDeparture(newValue);
   };
+
+  useEffect(() => {
+    if (props.selectedReservation) {
+      setReservation({ ...props.selectedReservation });
+      setEmail(props.selectedReservation.email || '');
+      setPhoneNumber(props.selectedReservation.phone?.toString() || '');
+    }
+  }, [props.selectedReservation]);
+
+  const handleZipCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReservation({
+      ...reservation,
+      addressLocation: {
+        ...reservation?.addressLocation,
+        zipCode: event.target.value,
+      },
+    });
+    // setStreetNumber(event.target.value);
+  };
+
+  const handleStateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReservation({
+      ...reservation,
+      addressLocation: {
+        ...reservation?.addressLocation,
+        state: event.target.value,
+      },
+    });
+    // setStreetNumber(event.target.value);
+  };
+
+  const handleCityChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setReservation({
+      ...reservation,
+      addressLocation: {
+        ...reservation?.addressLocation,
+        city: event.target.value,
+      },
+    });
+    // setStreetNumber(event.target.value);
+  };
+
+  useEffect(() => {
+    props.updateSelectedReservation({ ...reservation });
+  }, [reservation]);
 
   return (
     <Container
@@ -142,177 +255,240 @@ const Addreservations: React.FC = () => {
       style={{ marginRight: 'unset', marginLeft: 'unset' }}
     >
       <Box mt={5}>
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <DatePickerInput
-                label="Date of Arrival"
-                inputFormat="dd/MM/yyyy"
-                value={dateOfArrival}
-                onChange={handleDateOfArrivalChange}
-                error={dateError !== ''}
-                helperText={dateError}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <DatePickerInput
-                label="Date of Departure"
-                fullWidth
-                inputFormat="dd/MM/yyyy"
-                value={dateOfDeparture}
-                onChange={handleDateOfDepartureChange}
-                renderInput={params => <TextField {...params} />}
-              />
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <TextField
-                label="First Name"
-                value={firstName}
-                onChange={handleFirstNameChange}
-              />
-              <Typography variant="body2" color="textSecondary">
-                {firstName.split(' ').length} / 25 words
-              </Typography>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Last Name"
-                fullWidth
-                variant="outlined"
-                margin="normal"
-                value={lastName}
-                onChange={handleLastNameChange}
-              />
-              <Typography variant="body2" color="textSecondary">
-                {lastName.split(' ').length} / 25 words
-              </Typography>
-            </Grid>
-          </Grid>
-
-          <TextField
-            label="Email"
-            value={email}
-            onChange={handleEmailChange}
-            error={!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)}
-            helperText={
-              !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)
-                ? 'Invalid email address'
-                : ''
-            }
-          />
-
-          <TextField
-            label="Phone Number"
-            value={phoneNumber}
-            onChange={handlePhoneNumberChange}
-            error={!/^\d{1,15}$/.test(phoneNumber)}
-            helperText={
-              !/^\d{1,15}$/.test(phoneNumber)
-                ? 'Add the country code first'
-                : ''
-            }
-          />
-
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <TextField
-                label="Street Name"
-                value={streetName}
-                onChange={handleStreetNameChange}
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                label="Street Number"
-                value={streetNumber}
-                onChange={handleStreetNumberChange}
-              />
-            </Grid>
-          </Grid>
-
-          <Grid container spacing={2}>
-            {/* Room Size */}
-            <Grid item xs={6}>
-              <FormControl fullWidth variant="outlined" margin="normal">
-                <InputLabel>Room Size</InputLabel>
-                <Select label="Room Size">
-                  <MenuItem value="single">Single</MenuItem>
-                  <MenuItem value="double">Double</MenuItem>
-                  <MenuItem value="family">Family</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Room Quantity */}
-            <Grid item xs={6}>
-              <FormControl fullWidth variant="outlined" margin="normal">
-                <InputLabel>Room Quantity</InputLabel>
-                <Select label="Room Quantity">
-                  <MenuItem value={1}>1</MenuItem>
-                  <MenuItem value={2}>2</MenuItem>
-                  <MenuItem value={3}>3</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-
-          {/* Payment Method */}
-          <FormControl component="fieldset" fullWidth margin="normal">
-            <FormLabel component="legend">Payment Method</FormLabel>
-            <RadioGroup
-              row
-              value={paymentMethod}
-              onChange={handlePaymentChange}
-            >
-              <FormControlLabel
-                value="creditCard"
-                control={<Radio />}
-                label="Credit Card"
-              />
-              <FormControlLabel
-                value="paypal"
-                control={<Radio />}
-                label="PayPal"
-              />
-              <FormControlLabel value="cash" control={<Radio />} label="Cash" />
-              <FormControlLabel
-                value="bitcoin"
-                control={<Radio />}
-                label="Bitcoin"
-              />
-            </RadioGroup>
-          </FormControl>
-
-          {/* Personal Note */}
-          <TextField
-            label="Personal Note"
-            fullWidth
-            multiline
-            rows={4}
-            variant="outlined"
-            margin="normal"
-            value={personalNote}
-            onChange={handlePersonalNoteChange}
-          />
-
-          {/* Tags as Chips */}
-          <FormControl fullWidth variant="outlined" margin="normal">
-            <InputLabel>Tags</InputLabel>
-            <TextField
-              value={tagInput}
-              onChange={handleTagInputChange}
-              onKeyPress={event => {
-                if (event.key === 'Enter') {
-                  handleAddTag();
-                }
-              }}
+        <Grid container spacing={2} style={{ marginBottom: '20px' }}>
+          <Grid item xs={6}>
+            <DatePickerInput
+              inputLabel="Date of Arrival"
+              inputFormat="dd/MM/yyyy"
+              inputValue={reservation?.stay?.arrivalDate}
+              onChangeHandler={handleDateOfArrivalChange}
+              error={dateError !== ''}
+              helperText={dateError}
             />
-          </FormControl>
-          <Box mt={1}>
-            {tags.map(tag => (
+          </Grid>
+          <Grid item xs={6}>
+            <DatePickerInput
+              inputLabel="Date of Departure"
+              fullWidth
+              inputFormat="dd/MM/yyyy"
+              inputValue={reservation?.stay?.departureDate}
+              onChangeHandler={handleDateOfDepartureChange}
+            />
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={2} style={{ marginBottom: '20px' }}>
+          {/* Room Size */}
+          <Grid item xs={6}>
+            <FormControl
+              fullWidth
+              variant="outlined"
+              margin="normal"
+              sx={{ maxWidth: 140 }}
+            >
+              <InputLabel sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                Room Size
+              </InputLabel>
+              <Select
+                label="Room Size"
+                defaultValue={reservation?.room?.roomSize}
+                value={reservation?.room?.roomSize}
+                onChange={handleRoomSizeChange}
+                variant="standard"
+                sx={{ fontSize: '0.9rem', fontWeight: 500 }}
+              >
+                <MenuItem value="business-suite" sx={{ fontSize: '0.9rem' }}>
+                  Business Suite
+                </MenuItem>
+                <MenuItem
+                  value="presidential-suite"
+                  sx={{ fontSize: '0.9rem' }}
+                >
+                  Presidential Suite
+                </MenuItem>
+              </Select>
+              <FormHelperText>Select Room Size</FormHelperText>
+            </FormControl>
+          </Grid>
+
+          {/* Room Quantity */}
+          <Grid item xs={6}>
+            <FormControl fullWidth variant="outlined" margin="normal">
+              <ValidationTextFields
+                inputLabel="Room Size"
+                inputValue={reservation?.room?.roomQuantity}
+                onChangeHandler={handleRoomQuantityChange}
+                error={
+                  reservation?.room?.roomQuantity &&
+                  reservation.room.roomQuantity <= 5
+                    ? false
+                    : true
+                }
+                helperText={'Maximum 5'}
+              />
+            </FormControl>
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={2} style={{ marginBottom: '20px' }}>
+          <Grid item xs={6}>
+            <ValidationTextFields
+              inputLabel="First Name"
+              inputValue={reservation?.firstName}
+              onChangeHandler={handleFirstNameChange}
+              children={
+                <Typography variant="body2" color="textSecondary">
+                  {reservation?.firstName &&
+                    reservation.firstName.split(' ').length}{' '}
+                  / 25 words
+                </Typography>
+              }
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <ValidationTextFields
+              inputLabel="Last Name"
+              inputValue={reservation?.lastName}
+              onChangeHandler={handleLastNameChange}
+              children={
+                <Typography variant="body2" color="textSecondary">
+                  {reservation?.lastName &&
+                    reservation.lastName.split(' ').length}{' '}
+                  / 25 words
+                </Typography>
+              }
+            />
+          </Grid>
+        </Grid>
+
+        <Grid container style={{ marginBottom: '20px' }}>
+          <Grid item>
+            <ValidationTextFields
+              inputLabel="Email"
+              inputValue={email}
+              onChangeHandler={handleEmailChange}
+              error={!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)}
+              helperText={
+                !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)
+                  ? 'Invalid email address'
+                  : ''
+              }
+            />
+          </Grid>
+        </Grid>
+
+        <Grid container style={{ marginBottom: '20px' }}>
+          <Grid item>
+            <ValidationTextFields
+              inputLabel="Phone Number"
+              inputValue={phoneNumber}
+              onChangeHandler={handlePhoneNumberChange}
+              error={!/^\d{1,15}$/.test(phoneNumber)}
+              helperText={
+                !/^\d{1,15}$/.test(phoneNumber)
+                  ? 'Add the country code first'
+                  : ''
+              }
+            />
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={2} style={{ marginBottom: '20px' }}>
+          <Grid item xs={6}>
+            <ValidationTextFields
+              inputLabel="Street Name"
+              inputValue={reservation?.addressStreet?.streetName}
+              onChangeHandler={handleStreetNameChange}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <ValidationTextFields
+              inputLabel="Street Number"
+              inputValue={reservation?.addressStreet?.streetNumber}
+              onChangeHandler={handleStreetNumberChange}
+            />
+          </Grid>
+        </Grid>
+
+        <Grid container spacing={2} style={{ marginBottom: '20px' }}>
+          <Grid item xs={4}>
+            <ValidationTextFields
+              inputLabel="Zip"
+              inputValue={reservation?.addressLocation?.zipCode}
+              onChangeHandler={handleZipCodeChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <ValidationTextFields
+              inputLabel="State"
+              inputValue={reservation?.addressLocation?.state}
+              onChangeHandler={handleStateChange}
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <ValidationTextFields
+              inputLabel="City"
+              inputValue={reservation?.addressLocation?.city}
+              onChangeHandler={handleCityChange}
+            />
+          </Grid>
+        </Grid>
+
+        {/* Payment Method */}
+        <FormControl component="fieldset" fullWidth margin="normal">
+          <FormLabel component="legend">Payment Method</FormLabel>
+          <RadioGroup
+            row
+            value={reservation?.payment}
+            onChange={handlePaymentChange}
+          >
+            <FormControlLabel
+              value="creditCard"
+              control={<Radio />}
+              label="Credit Card"
+            />
+            <FormControlLabel
+              value="paypal"
+              control={<Radio />}
+              label="PayPal"
+            />
+            <FormControlLabel value="cash" control={<Radio />} label="Cash" />
+            <FormControlLabel
+              value="bitcoin"
+              control={<Radio />}
+              label="Bitcoin"
+            />
+          </RadioGroup>
+        </FormControl>
+
+        {/* Personal Note */}
+        <ValidationTextFields
+          inputLabel="Personal Note"
+          fullWidth
+          multiline
+          rows={4}
+          variant="outlined"
+          margin="normal"
+          value={reservation?.note}
+          onChangeHandler={handlePersonalNoteChange}
+        />
+
+        {/* Tags as Chips */}
+        <FormControl fullWidth variant="outlined" margin="normal">
+          <ValidationTextFields
+            inputLabel={'Tags'}
+            inputValue={tagInput}
+            onChangeHandler={handleTagInputChange}
+            onKeyPress={event => {
+              if (event.key === 'Enter') {
+                handleAddTag();
+              }
+            }}
+          />
+        </FormControl>
+        <Box mt={1}>
+          {reservation?.tags &&
+            reservation.tags.map(tag => (
               <Chip
                 key={tag}
                 label={tag}
@@ -320,32 +496,27 @@ const Addreservations: React.FC = () => {
                 style={{ margin: 4 }}
               />
             ))}
-          </Box>
+        </Box>
 
-          {/* Toggle buttons */}
-          <FormControlLabel
-            control={
-              <Switch
-                checked={sendReminder}
-                onChange={handleSendReminderChange}
-              />
-            }
-            label="Send me a reminder"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                checked={subscribeNewsletter}
-                onChange={handleSubscribeNewsletterChange}
-              />
-            }
-            label="Subscribe to newsletter"
-          />
-
-          <Button type="submit" variant="contained" color="primary">
-            Submit
-          </Button>
-        </form>
+        {/* Toggle buttons */}
+        <FormControlLabel
+          control={
+            <ControlledSwitch
+              checked={reservation?.reminder}
+              onChange={handleSendReminderChange}
+            />
+          }
+          label="Send me a reminder"
+        />
+        <FormControlLabel
+          control={
+            <ControlledSwitch
+              checked={reservation?.newsletter}
+              onChange={handleSubscribeNewsletterChange}
+            />
+          }
+          label="Subscribe to newsletter"
+        />
       </Box>
     </Container>
   );

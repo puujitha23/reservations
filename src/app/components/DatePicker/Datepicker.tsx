@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useEffect, useState } from 'react';
 import dayjs, { Dayjs } from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -10,15 +10,20 @@ const DateInput = styled(DatePick)`
 `;
 export default function DatePickerInput(props) {
   const { inputLabel, inputValue, onChangeHandler, ...rest } = props;
-  const [value, setValue] = React.useState<Dayjs | null>(dayjs('2022-04-17'));
+  const [value, setValue] = React.useState<Dayjs | null>(null);
+
+  useEffect(() => {
+    if (inputValue) {
+      setValue(dayjs(inputValue));
+    }
+  }, [inputValue]);
 
   return (
     <LocalizationProvider dateAdapter={AdapterDayjs}>
       <DateInput
         label={inputLabel}
         variant="standard"
-        defaultValue={dayjs(inputValue)}
-        value={dayjs(value)}
+        value={value}
         onChange={(newValue: Dayjs) => {
           setValue(newValue);
           onChangeHandler(newValue);

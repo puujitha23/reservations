@@ -16,6 +16,7 @@ import {
   Select,
   FormHelperText,
   SelectChangeEvent,
+  Checkbox,
 } from '@mui/material';
 import DatePickerInput from 'app/components/DatePicker/Datepicker';
 import { Reservation } from 'types/Reservation';
@@ -33,6 +34,7 @@ const ControlledSwitch = styled(Switch)`
 const Addreservations: React.FC<AddReservationProps> = props => {
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>([]);
   const [email, setEmail] = useState<string>('');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [dateError, setDateError] = useState('');
@@ -72,14 +74,11 @@ const Addreservations: React.FC<AddReservationProps> = props => {
   };
 
   const handleAddTag = () => {
-    if (
-      tagInput.trim() !== '' &&
-      reservation?.tags &&
-      !reservation.tags.includes(tagInput.trim())
-    ) {
+    if (tagInput.trim() !== '' && tags && !tags.includes(tagInput.trim())) {
+      setTags([...tags, tagInput.trim()]);
       setReservation({
         ...reservation,
-        tags: [...reservation.tags, tagInput.trim()],
+        tags: [...tags, tagInput.trim()],
       });
       setTagInput('');
     }
@@ -245,8 +244,19 @@ const Addreservations: React.FC<AddReservationProps> = props => {
     // setStreetNumber(event.target.value);
   };
 
+  const handleConfirmInformationChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    setReservation({
+      ...reservation,
+      confirm: event.target.checked,
+    });
+  };
+
   useEffect(() => {
-    props.updateSelectedReservation({ ...reservation });
+    if (reservation) {
+      props.updateSelectedReservation({ ...reservation });
+    }
   }, [reservation]);
 
   return (
@@ -284,17 +294,17 @@ const Addreservations: React.FC<AddReservationProps> = props => {
               fullWidth
               variant="outlined"
               margin="normal"
-              sx={{ maxWidth: 140 }}
+              sx={{ maxWidth: 160 }}
             >
               <InputLabel sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
                 Room Size
               </InputLabel>
               <Select
                 label="Room Size"
-                defaultValue={reservation?.room?.roomSize}
-                value={reservation?.room?.roomSize}
+                value={
+                  reservation?.room?.roomSize ? reservation?.room?.roomSize : ''
+                }
                 onChange={handleRoomSizeChange}
-                variant="standard"
                 sx={{ fontSize: '0.9rem', fontWeight: 500 }}
               >
                 <MenuItem value="business-suite" sx={{ fontSize: '0.9rem' }}>
@@ -439,7 +449,7 @@ const Addreservations: React.FC<AddReservationProps> = props => {
           <FormLabel component="legend">Payment Method</FormLabel>
           <RadioGroup
             row
-            value={reservation?.payment}
+            value={reservation?.payment ? reservation.payment : ''}
             onChange={handlePaymentChange}
           >
             <FormControlLabel
@@ -473,50 +483,70 @@ const Addreservations: React.FC<AddReservationProps> = props => {
           onChangeHandler={handlePersonalNoteChange}
         />
 
-        {/* Tags as Chips */}
-        <FormControl fullWidth variant="outlined" margin="normal">
-          <ValidationTextFields
-            inputLabel={'Tags'}
-            inputValue={tagInput}
-            onChangeHandler={handleTagInputChange}
-            onKeyPress={event => {
-              if (event.key === 'Enter') {
-                handleAddTag();
-              }
-            }}
-          />
-        </FormControl>
-        <Box mt={1}>
-          {reservation?.tags &&
-            reservation.tags.map(tag => (
-              <Chip
-                key={tag}
-                label={tag}
-                onDelete={() => handleRemoveTag(tag)}
-                style={{ margin: 4 }}
-              />
-            ))}
-        </Box>
+        <Grid container style={{ marginBottom: '20px' }}>
+          {/* Tags as Chips */}
+          <FormControl fullWidth variant="outlined" margin="normal">
+            <ValidationTextFields
+              inputLabel={'Tags'}
+              inputValue={tagInput}
+              onChangeHandler={handleTagInputChange}
+              onKeyPress={event => {
+                if (event.key === 'Enter') {
+                  handleAddTag();
+                }
+              }}
+            />
+          </FormControl>
+          <Box mt={1}>
+            {reservation?.tags &&
+              reservation.tags.map(tag => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  onDelete={() => handleRemoveTag(tag)}
+                  style={{ margin: 4 }}
+                />
+              ))}
+          </Box>
+        </Grid>
 
-        {/* Toggle buttons */}
-        <FormControlLabel
-          control={
-            <ControlledSwitch
-              checked={reservation?.reminder}
-              onChange={handleSendReminderChange}
+        <Grid container direction={'column'} spacing={1}>
+          <Grid item>
+            <FormControlLabel
+              control={
+                <ControlledSwitch
+                  checked={reservation?.reminder}
+                  onChange={handleSendReminderChange}
+                />
+              }
+              label="Send me a reminder"
             />
-          }
-          label="Send me a reminder"
-        />
-        <FormControlLabel
-          control={
-            <ControlledSwitch
-              checked={reservation?.newsletter}
-              onChange={handleSubscribeNewsletterChange}
+          </Grid>
+          <Grid item>
+            <FormControlLabel
+              control={
+                <ControlledSwitch
+                  checked={reservation?.newsletter}
+                  onChange={handleSubscribeNewsletterChange}
+                />
+              }
+              label="Subscribe to newsletter"
             />
-          }
-          label="Subscribe to newsletter"
-        />
+          </Grid>
+          <Grid item>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={reservation?.confirm ? reservation?.confirm : false}
+                  onChange={handleConfirmInformationChange}
+                  inputProps={{ 'aria-label': 'Confirm Information Checkbox' }}
+                />
+              }
+              label="I confirm the information above"
+              labelPlacement="end" // Set labelPlacement to "end" to place the label on the right
+            />
+          </Grid>
+        </Grid>
       </Box>
     </Container>
   );

@@ -75,10 +75,13 @@ const Content: React.FC = () => {
   };
 
   const updateReservationToCache = (newReservation: Reservation) => {
-    const updatedReservations = [
-      ...reservationsSubject.getValue(),
-      newReservation,
-    ];
+    const updatedReservations = reservationsSubject.getValue().map(reserv => {
+      if (reserv.id === newReservation.id) {
+        return newReservation;
+      } else {
+        return reserv;
+      }
+    });
     reservationsSubject.next(updatedReservations);
   };
 

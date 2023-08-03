@@ -69,4 +69,35 @@ export const reservations: Reservation[] = [
     newsletter: false,
     confirm: true,
   },
+  {
+    id: 3,
+    stay: {
+      arrivalDate: '2021-11-01T04:00:00.000Z',
+      departureDate: '2021-11-04T04:00:00.000Z',
+    },
+    room: {
+      roomSize: 'presidential-suite',
+      roomQuantity: 2,
+    },
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'john.doe@example.com',
+    phone: 123456789,
+    addressStreet: {
+      streetName: 'IDM',
+      streetNumber: '1234',
+    },
+    addressLocation: {
+      zipCode: '123456',
+      state: 'Arkansas',
+      city: 'OAK',
+    },
+    extras: ['extraParking', 'extraBalcony'],
+    payment: 'cash',
+    note: 'lab test',
+    tags: ['angular', 'material', 'labtest'],
+    reminder: true,
+    newsletter: false,
+    confirm: true,
+  },
 ];

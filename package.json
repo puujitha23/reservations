@@ -9,8 +9,6 @@
     "@mui/material": "5.14.2",
     "@mui/x-date-pickers": "6.10.2",
     "@reduxjs/toolkit": "1.8.5",
-    "@testing-library/jest-dom": "5.16.5",
-    "@testing-library/react": "13.4.0",
     "@types/fontfaceobserver": "^2.1.0",
     "@types/jest": "^27.5.2",
     "@types/node": "^14.18.27",
@@ -83,7 +81,8 @@
     "generate": "plop --plopfile internals/generators/plopfile.ts",
     "cleanAndSetup": "ts-node ./internals/scripts/clean.ts",
     "prettify": "prettier --write",
-    "extract-messages": "i18next-scanner --config=internals/extractMessages/i18next-scanner.config.js"
+    "extract-messages": "i18next-scanner --config=internals/extractMessages/i18next-scanner.config.js",
+    "jest:test":"jest"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -128,5 +127,11 @@
         "statements": 90
       }
     }
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "5.17.0",
+    "@testing-library/react": "14.0.0",
+    "@testing-library/user-event": "14.4.3",
+    "jest": "29.6.2"
   }
 }

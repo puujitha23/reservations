@@ -17,6 +17,7 @@ import {
   FormHelperText,
   SelectChangeEvent,
   Checkbox,
+  IconButton,
 } from '@mui/material';
 import DatePickerInput from 'app/components/DatePicker/Datepicker';
 import { Reservation } from 'types/Reservation';
@@ -503,6 +504,24 @@ const Addreservations: React.FC<AddReservationProps> = props => {
                 <Chip
                   key={tag}
                   label={tag}
+                  deleteIcon={
+                    <IconButton aria-label="delete">
+                      {/* Replace the following SVG with your "delete" icon SVG */}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </IconButton>
+                  }
                   onDelete={() => handleRemoveTag(tag)}
                   style={{ margin: 4 }}
                 />

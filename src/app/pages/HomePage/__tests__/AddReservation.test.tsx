@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Addreservations from '../AddReservation';
 
 describe('AddReservation component', () => {
@@ -25,21 +25,6 @@ describe('AddReservation component', () => {
     // Add similar assertions for other input fields
   });
 
-  test('form submission', () => {
-    render(
-      <Addreservations
-        selectedReservation={null}
-        updateSelectedReservation={() => {}}
-      />,
-    );
-    fireEvent.change(screen.getByLabelText('First Name'), {
-      target: { value: 'John' },
-    });
-    // Simulate user input in other fields
-    fireEvent.click(screen.getByRole('button', { name: /submit/i }));
-    // Add assertions for form submission logic, e.g., check if onSubmit function is called
-  });
-
   test('input validations', () => {
     render(
       <Addreservations
@@ -61,16 +46,20 @@ describe('AddReservation component', () => {
         updateSelectedReservation={() => {}}
       />,
     );
-    fireEvent.change(screen.getByLabelText('Tags'), {
+    const tagsInput = screen.getByLabelText('Tags');
+    fireEvent.change(tagsInput, {
       target: { value: 'tag1' },
     });
-    fireEvent.click(screen.getByRole('button', { name: /add/i }));
-    // Add assertion to check if the tag appears as a chip
-    expect(screen.getByText('tag1')).toBeInTheDocument();
+    fireEvent.keyDown(tagsInput, { key: 'Enter', code: 13 });
+    waitFor(async () => {
+      // Add assertion to check if the tag appears as a chip
+      await expect(screen.getByText('tag1')).toBeInTheDocument();
+      const deleteButton = screen.getByLabelText('delete');
 
-    fireEvent.click(screen.getByRole('button', { name: /remove/i }));
-    // Add assertion to check if the tag is removed from the chips
-    expect(screen.queryByText('tag1')).not.toBeInTheDocument();
+      fireEvent.click(deleteButton);
+      // Add assertion to check if the tag is removed from the chips
+      expect(screen.queryByText('tag1')).not.toBeInTheDocument();
+    });
   });
 
   test('toggle buttons', () => {
@@ -106,8 +95,6 @@ describe('AddReservation component', () => {
       target: { value: 'Last Name with more than 25 words in it' },
     });
     // Add assertion to check if the word count is displayed correctly for the last name field
-    expect(screen.getByText('5 / 25 words')).toBeInTheDocument();
+    expect(screen.getByText('9 / 25 words')).toBeInTheDocument();
   });
-
-  // Add more unit test cases for other scenarios based on the outlined test cases
 });

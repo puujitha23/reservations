@@ -9,10 +9,7 @@ export function HomePage() {
     <>
       <Helmet>
         <title>Home Page</title>
-        <meta
-          name="description"
-          content="A React Boilerplate application homepage"
-        />
+        <meta name="description" content="Reservations" />
       </Helmet>
       <NavBar />
       <PageWrapper>

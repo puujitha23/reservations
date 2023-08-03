@@ -26,13 +26,13 @@ describe('Content Component', () => {
 
   test('adds a new reservation to the table when "Add Reservation" button is clicked', () => {
     render(<Content />);
-    const addReservationButton = screen.getByText('Add Reservation');
+    const addReservationButton = screen.getByText('Add');
     fireEvent.click(addReservationButton);
 
     const firstNameInput = screen.getByLabelText('First Name');
     const lastNameInput = screen.getByLabelText('Last Name');
     const emailInput = screen.getByLabelText('Email');
-    const addButton = screen.getByText('Add');
+    const addButton = screen.getByText('Save Changes');
 
     fireEvent.change(firstNameInput, { target: { value: 'New' } });
     fireEvent.change(lastNameInput, { target: { value: 'Reservation' } });

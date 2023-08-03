@@ -50,12 +50,14 @@ const Content: React.FC = () => {
     () => new BehaviorSubject<Reservation[]>(initialReservations),
     [],
   );
+  const [totalReservations, setTotalReservations] = useState<Reservation[]>([]);
 
   // Subscribe to the observable to get the latest reservations and update the state
   useEffect(() => {
     const subscription: Subscription = reservationsSubject.subscribe(
       reservations => {
         setReservations(reservations);
+        setTotalReservations(reservations);
       },
     );
 
@@ -117,7 +119,7 @@ const Content: React.FC = () => {
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
-    const filteredReservations = initialReservations.filter(
+    const filteredReservations = totalReservations.filter(
       reservation =>
         (reservation?.email &&
           reservation.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -134,7 +136,7 @@ const Content: React.FC = () => {
       event.target.value.length > 0 &&
       setReservations(filteredReservations);
     if (event.target.value === '') {
-      setReservations(initialReservations);
+      setReservations(totalReservations);
     }
   };
 

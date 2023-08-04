@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { createRenderer } from 'react-test-renderer/shallow';
-
 import { HomePage } from '..';
 
 const shallowRenderer = createRenderer();

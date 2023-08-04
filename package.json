@@ -82,7 +82,7 @@
     "cleanAndSetup": "ts-node ./internals/scripts/clean.ts",
     "prettify": "prettier --write",
     "extract-messages": "i18next-scanner --config=internals/extractMessages/i18next-scanner.config.js",
-    "jest:test":"jest"
+    "jest:test": "jest"
   },
   "eslintConfig": {
     "extends": "react-app"

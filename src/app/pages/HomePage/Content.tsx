@@ -51,7 +51,6 @@ const Content: React.FC = () => {
     [],
   );
   const [totalReservations, setTotalReservations] = useState<Reservation[]>([]);
-
   // Subscribe to the observable to get the latest reservations and update the state
   useEffect(() => {
     const subscription: Subscription = reservationsSubject.subscribe(
